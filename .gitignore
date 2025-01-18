@@ -1,0 +1,19 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+telepath
+telepath-*
+
+# Test binary, built with `go test -c`
+_test_*
+*.test
+*.out
+coverage.out
+
+# Directory
+build/
+coverage/
+.vscode
