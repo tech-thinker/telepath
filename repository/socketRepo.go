@@ -7,50 +7,97 @@ import (
 	"net"
 	"os"
 
+	"github.com/tech-thinker/telepath/config"
+	"github.com/tech-thinker/telepath/constants"
 	"github.com/tech-thinker/telepath/models"
 	"golang.org/x/crypto/ssh"
 )
 
 type SocketRepo interface {
-	StartConnection(host models.SSHConfig, localPort int, remoteHost string, remotePort int)
-	StopConnection()
+	Start(tunnel models.Tunnel)
+	Stop(tunnel models.Tunnel)
 }
 
 type socketRepo struct {
-	running bool
+	cfg             config.Configuration
+	liveConnections map[string]*liveConnection
 }
 
-func (repo *socketRepo) StopConnection() {
-	repo.running = false
+type liveConnection struct {
+	client *ssh.Client
+	active bool
 }
 
-func (repo *socketRepo) StartConnection(host models.SSHConfig, localPort int, remoteHost string, remotePort int) {
-	repo.running = true
+func NewLiveConnection() *liveConnection {
+	return &liveConnection{}
+}
+
+func (l *liveConnection) Activate() {
+	l.active = true
+}
+
+func (l *liveConnection) IsActive() bool {
+	return l.active
+}
+
+func (l *liveConnection) Deactivate() {
+	l.active = false
+}
+
+func (repo *socketRepo) Stop(tunnel models.Tunnel) {
+	liveConn, ok := repo.liveConnections[tunnel.Name]
+	if ok {
+		if liveConn.IsActive() {
+			liveConn.Deactivate()
+			return
+		}
+	}
+}
+
+func (repo *socketRepo) Start(tunnel models.Tunnel) {
+	// Take live connection if exists or create
+	liveConn, ok := repo.liveConnections[tunnel.Name]
+	if ok {
+		if liveConn.IsActive() {
+			// Connection already exists
+			return
+		}
+	} else {
+		// creating nre connection
+		liveConn = NewLiveConnection()
+		repo.liveConnections[tunnel.Name] = liveConn
+		liveConn.Activate()
+		defer liveConn.Deactivate()
+	}
+
 	// Port forwarding details
-	var client *ssh.Client
+	// var client *ssh.Client
 	var err error
 
-	next := &host
-	for next != nil {
-		client, err = repo.createSSHClient(*next, client)
-		if err != nil {
-			log.Fatalf("failed to connect to %s: %v", next.Name, err)
+	for _, h := range tunnel.HostChain {
+		host, ok := repo.cfg.Config().Hosts[h]
+		if !ok {
+			continue
 		}
-		defer client.Close()
-		next = next.NextHop
+
+		liveConn.client, err = repo.createSSHClient(host, liveConn.client)
+		if err != nil {
+			log.Fatalf("failed to connect to %s: %v", host.Name, err)
+		}
+		defer liveConn.client.Close()
 	}
 
 	// Set up local port forwarding
-	listener, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", localPort))
+	listener, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", tunnel.LocalPort))
 	if err != nil {
-		log.Fatalf("Failed to set up listener on local port %d: %v", localPort, err)
+		log.Fatalf("Failed to set up listener on local port %d: %v", tunnel.LocalPort, err)
 	}
 	defer listener.Close()
 
-	log.Printf("Forwarding local port %d to %s:%d via SSH", localPort, remoteHost, remotePort)
+	log.Printf("Forwarding local port %d to %s:%d via SSH", tunnel.LocalPort, tunnel.RemoteHost, tunnel.RemotePort)
 
 	for {
-		if !repo.running {
+		if !liveConn.IsActive() {
 			break
 		}
 
@@ -60,7 +107,7 @@ func (repo *socketRepo) StartConnection(host models.SSHConfig, localPort int, re
 			continue
 		}
 
-		remoteConn, err := client.Dial("tcp", fmt.Sprintf("%s:%d", remoteHost, remotePort))
+		remoteConn, err := liveConn.client.Dial("tcp", fmt.Sprintf("%s:%d", tunnel.RemoteHost, tunnel.RemotePort))
 		if err != nil {
 			log.Printf("Failed to connect to remote host: %v", err)
 			localConn.Close()
@@ -81,17 +128,23 @@ func (repo *socketRepo) StartConnection(host models.SSHConfig, localPort int, re
 	}
 }
 
-func (repo *socketRepo) createSSHClient(config models.SSHConfig, proxy *ssh.Client) (*ssh.Client, error) {
+func (repo *socketRepo) createSSHClient(config models.HostConfig, proxy *ssh.Client) (*ssh.Client, error) {
+	// read credientials
+	cred, ok := repo.cfg.Config().Credientials[config.CredientialName]
+	if !ok {
+		return proxy, fmt.Errorf(`No crediential found for host: %s`, config.Name)
+	}
+
 	var authMethods []ssh.AuthMethod
 
 	// Add password authentication if provided
-	if config.Password != "" {
-		authMethods = append(authMethods, ssh.Password(config.Password))
+	if cred.Type == constants.CREDIENTIAL_PASS {
+		authMethods = append(authMethods, ssh.Password(cred.Password))
 	}
 
 	// Add private key authentication if provided
-	if config.KeyFile != "" {
-		key, err := os.ReadFile(config.KeyFile)
+	if cred.Type == constants.CREDIENTIAL_KEY {
+		key, err := os.ReadFile(cred.KeyFile)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read key file: %w", err)
 		}
@@ -132,6 +185,11 @@ func (repo *socketRepo) createSSHClient(config models.SSHConfig, proxy *ssh.Clie
 	return client, nil
 }
 
-func NewSocketRepo() SocketRepo {
-	return &socketRepo{}
+func NewSocketRepo(
+	cfg config.Configuration,
+) SocketRepo {
+	return &socketRepo{
+		cfg:             cfg,
+		liveConnections: make(map[string]*liveConnection),
+	}
 }

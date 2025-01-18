@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/tech-thinker/telepath/cmd"
+	"github.com/tech-thinker/telepath/config"
 	"github.com/tech-thinker/telepath/constants"
 	"github.com/tech-thinker/telepath/daemon"
 	"github.com/tech-thinker/telepath/handler"
@@ -18,17 +19,19 @@ var (
 )
 
 func main() {
-	handler := handler.NewHandler()
+	cfg := config.InitConfig()
+	handler := handler.NewHandler(cfg)
 	daemonMgr := daemon.NewDaemonMgr(constants.PID_FILE_PATH, constants.SOCKET_PATH, handler)
 	appCmd := cmd.NewApp(daemonMgr)
 
 	app := &cli.App{
 		Name:    "protty",
 		Version: AppVersion,
-		Action:  appCmd.SendCommand(),
 		Commands: []*cli.Command{
-			appCmd.StartDaemon(),
-			appCmd.StopDaemon(),
+			appCmd.Daemon(),
+			appCmd.Crediential(),
+			appCmd.Host(),
+			appCmd.Tunnel(),
 		},
 	}
 

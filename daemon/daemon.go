@@ -7,19 +7,21 @@ import (
 	"net"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"syscall"
 
 	"github.com/tech-thinker/telepath/handler"
+	"github.com/tech-thinker/telepath/models"
+	"github.com/tech-thinker/telepath/utils"
 )
 
 type DaemonMgr interface {
 	RunAsDaemon(ctx context.Context) error
 	RunDaemonChild(ctx context.Context) error
 	StopDaemon(ctx context.Context) error
-	SendCommandToDaemon(ctx context.Context, args []string) error
+	StatusDaemon(ctx context.Context) error
+	SendCommandToDaemon(ctx context.Context, packet models.Packet) error
 }
 
 type daemonMgr struct {
@@ -55,7 +57,7 @@ func (ps *daemonMgr) RunAsDaemon(ctx context.Context) error {
 	}
 
 	// Fork the process
-	cmd := exec.Command(os.Args[0], "start", "--daemon-child")
+	cmd := exec.Command(os.Args[0], "daemon", "start", "--daemon-child")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Start()
@@ -141,8 +143,28 @@ func (ps *daemonMgr) StopDaemon(ctx context.Context) error {
 	return nil
 }
 
+// Status the daemon process
+func (ps *daemonMgr) StatusDaemon(ctx context.Context) error {
+	if ps.IsDaemonRunning(ctx) {
+		pidData, err := os.ReadFile(ps.pidFilePath)
+		if err != nil {
+			return fmt.Errorf("failed to read PID file: %v", err)
+		}
+
+		pid, err := strconv.Atoi(strings.TrimSpace(string(pidData)))
+		if err != nil {
+			return fmt.Errorf("invalid PID in PID file: %v", err)
+		}
+
+		fmt.Println("Telepath daemon is running on PID: ", pid)
+	} else {
+		fmt.Println("Telepath daemon is stopped.")
+	}
+	return nil
+}
+
 // Send commands to the daemon
-func (ps *daemonMgr) SendCommandToDaemon(ctx context.Context, args []string) error {
+func (ps *daemonMgr) SendCommandToDaemon(ctx context.Context, packet models.Packet) error {
 	// Ensure the daemon is running
 	if !ps.IsDaemonRunning(ctx) {
 		return fmt.Errorf("daemon is not running")
@@ -154,9 +176,10 @@ func (ps *daemonMgr) SendCommandToDaemon(ctx context.Context, args []string) err
 	}
 	defer conn.Close()
 
-	// Send the command to the daemon
-	command := filepath.Join(args...)
-	_, err = conn.Write([]byte(command))
+	data := packet.ToByte()
+
+	// Send request to daemon
+	_, err = conn.Write(data)
 	if err != nil {
 		return fmt.Errorf("failed to send command: %v", err)
 	}
@@ -167,8 +190,11 @@ func (ps *daemonMgr) SendCommandToDaemon(ctx context.Context, args []string) err
 	if err != nil {
 		return fmt.Errorf("failed to read response: %v", err)
 	}
-
-	fmt.Printf("%s\n", string(buf[:n]))
+	result, err := utils.ToPacket(buf[:n])
+	if err != nil {
+		return fmt.Errorf("failed to decode response: %v", err)
+	}
+	fmt.Printf(string(result.Data))
 	return nil
 }
 
@@ -182,17 +208,17 @@ func (ps *daemonMgr) handleClient(ctx context.Context, conn net.Conn) {
 		return
 	}
 
-	command := string(buf[:n])
-	log.Printf("Received command: %s", command)
-
-	result, err := ps.handler.Handle(ctx, command)
-	// Execute the command and send the result back
-	// result, err := exec.Command("sh", "-c", command).CombinedOutput()
+	packet, err := utils.ToPacket(buf[:n])
 	if err != nil {
-		conn.Write([]byte(fmt.Sprintf("Error executing command: %v\n", err)))
-	} else {
-		conn.Write([]byte(result))
+		log.Printf("Error decoding packet: %v", err)
+		return
 	}
+
+	result, err := ps.handler.Handle(ctx, packet)
+	if err != nil {
+		log.Printf("Error executing command: %v\n", err)
+	}
+	conn.Write(result.ToByte())
 }
 
 func NewDaemonMgr(

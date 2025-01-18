@@ -1,8 +1,11 @@
 start: build
-	./telepath start --daemon
+	@./telepath daemon start
 
 stop: build
-	./telepath kill --daemon
+	@./telepath daemon stop
+
+status: build
+	@./telepath daemon status
 
 build:
-	go build -o telepath .
+	@go build -o telepath .
