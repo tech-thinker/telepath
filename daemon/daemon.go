@@ -102,7 +102,8 @@ func (ps *daemonMgr) RunDaemonChild(ctx context.Context) (err error) {
 func (ps *daemonMgr) StopDaemon(ctx context.Context) error {
 	// Check if the daemon is running
 	if !ps.IsDaemonRunning(ctx) {
-		return fmt.Errorf("daemon is not running")
+		fmt.Println("daemon is not running")
+		return nil
 	}
 
 	// Read the PID from the file

@@ -39,7 +39,7 @@ func (a *app) Crediential() *cli.Command {
 					ctx := context.Background()
 					credType := c.String("type")
 					pass := c.String("pass")
-					key := c.String("key")
+					key := c.String("key-file")
 
 					cred := models.Crediential{
 						Name:     c.Args().First(),

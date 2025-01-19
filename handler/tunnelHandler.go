@@ -67,12 +67,21 @@ func (h *handler) listTunnel(_ models.Packet) (models.Packet, error) {
 		log.Println("failed to read tunnels.", err)
 	}
 
+	liveConns := h.socketRepo.LiveConnections()
+
 	var buf bytes.Buffer
 	table := tablewriter.NewWriter(&buf)
-	table.SetHeader([]string{"Name", "Local Port", "Remote Host", "Remote Port", "Host Chain"})
+	table.SetHeader([]string{"Name", "Status", "Local Port", "Remote Host", "Remote Port", "Host Chain"})
 
 	for _, doc := range docs {
-		table.Append([]string{doc.Name, strconv.Itoa(doc.LocalPort), doc.RemoteHost, strconv.Itoa(doc.RemotePort), strings.Join(doc.HostChain, ",")})
+		status := "Ready"
+		liveConn, ok := liveConns[doc.Name]
+		if ok {
+			if liveConn.IsActive() {
+				status = "Running"
+			}
+		}
+		table.Append([]string{doc.Name, status, strconv.Itoa(doc.LocalPort), doc.RemoteHost, strconv.Itoa(doc.RemotePort), strings.Join(doc.HostChain, ",")})
 	}
 
 	table.SetBorder(true) // Enable/Disable borders
@@ -140,7 +149,7 @@ func (h *handler) startTunnel(packet models.Packet) (models.Packet, error) {
 
 	go h.socketRepo.Start(doc)
 
-	result.Data = []byte("Tunnel started successfully.")
+	result.Data = []byte("Tunnel started successfully.\n")
 	return result, nil
 }
 
@@ -164,6 +173,6 @@ func (h *handler) stopTunnel(packet models.Packet) (models.Packet, error) {
 
 	h.socketRepo.Stop(doc)
 
-	result.Data = []byte("Tunnel stopped successfully.")
+	result.Data = []byte("Tunnel stopped successfully.\n")
 	return result, nil
 }

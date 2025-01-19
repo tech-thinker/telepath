@@ -44,7 +44,7 @@ func (a *app) Tunnel() *cli.Command {
 				Action: func(c *cli.Context) error {
 					localPort := c.Int("local-port")
 					remoteHost := c.String("remote-host")
-					remotePort := c.Int("local-port")
+					remotePort := c.Int("remote-port")
 					hosts := c.String("host-chain")
 
 					tunnel := models.Tunnel{
