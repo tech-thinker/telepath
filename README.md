@@ -14,6 +14,12 @@ Whether you're working with password-based or keyfile authentication, single or 
 ## Installation
 Download and install executable binary from GitHub releases page.
 
+### Using homebrew
+```sh
+brew tap tech-thinker/tap
+brew install telepath
+```
+
 ### Linux Installation
 ```sh
 # Use latest tag name from release page
@@ -32,12 +38,6 @@ TAG=<tag-name>
 curl -sL "https://github.com/tech-thinker/telepath/releases/download/${TAG}/telepath-darwin-amd64" -o telepath
 chmod +x telepath
 sudo mv telepath /usr/bin
-```
-
-- Or using homebrew
-```sh
-brew tap tech-thinker/tap
-brew install telepath
 ```
 
 ### Windows Installation
@@ -93,12 +93,13 @@ telepath crediential add -T PASS -P "my-password" cred2
 
 - Create Host with crediential
 ```sh
-telepath host add -H <host-ip> -P 22 -U <username> -C cred1 mylab
+telepath host add -H <host-ip> -P 22 -U <username> -C cred1 mylab1
+telepath host add -H <host-ip> -P 22 -U <username> -C cred2 mylab2
 ```
 
 - Create tunnel for mysql connection
 ```sh
-telepath tunnel add -L 3306 -H localhost -R 3306 -C mylab tunnel1
+telepath tunnel add -L 3306 -H localhost -R 3306 -C mylab1,mylab2 tunnel1
 ```
 
 - Start and stop tunnel
