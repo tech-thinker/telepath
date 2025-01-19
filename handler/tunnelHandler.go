@@ -145,6 +145,8 @@ func (h *handler) startTunnel(packet models.Packet) (models.Packet, error) {
 	doc, err = h.configRepo.DetailTunnel(doc.Name)
 	if err != nil {
 		log.Println("failed to read tunnel.", err)
+		result.Data = []byte("Tunnel not found.\n")
+		return result, nil
 	}
 
 	go h.socketRepo.Start(doc)
@@ -169,6 +171,8 @@ func (h *handler) stopTunnel(packet models.Packet) (models.Packet, error) {
 	doc, err = h.configRepo.DetailTunnel(doc.Name)
 	if err != nil {
 		log.Println("failed to read tunnel.", err)
+		result.Data = []byte("Tunnel not found.\n")
+		return result, nil
 	}
 
 	h.socketRepo.Stop(doc)

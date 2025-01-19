@@ -25,7 +25,7 @@ func main() {
 	appCmd := cmd.NewApp(daemonMgr)
 
 	app := &cli.App{
-		Name:    "protty",
+		Name:    "telepath",
 		Version: AppVersion,
 		Commands: []*cli.Command{
 			appCmd.Daemon(),

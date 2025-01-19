@@ -12,7 +12,7 @@ import (
 func (a *app) Host() *cli.Command {
 	return &cli.Command{
 		Name:  "host",
-		Usage: "crediential operation",
+		Usage: "Host operation",
 		Subcommands: []*cli.Command{
 			{
 				Name:  "add",

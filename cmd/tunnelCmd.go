@@ -13,7 +13,7 @@ import (
 func (a *app) Tunnel() *cli.Command {
 	return &cli.Command{
 		Name:  "tunnel",
-		Usage: "crediential operation",
+		Usage: "Tunnel operation",
 		Subcommands: []*cli.Command{
 			{
 				Name:  "add",

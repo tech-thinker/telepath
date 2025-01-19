@@ -9,7 +9,7 @@ import (
 func (a *app) Daemon() *cli.Command {
 	return &cli.Command{
 		Name:  "daemon",
-		Usage: "crediential operation",
+		Usage: "Daemon operation",
 		Subcommands: []*cli.Command{
 			{
 				Name:  "start",

@@ -1,0 +1,149 @@
+.TH TELEPATH 1 "BUILDDATE" "Version VERSION" "User Commands"
+.SH NAME
+telepath \- is a powerful CLI tool for secure port forwarding with support for multiple jump hosts and flexible authentication.
+.SH SYNOPSIS
+.B telepath
+.RI "command " [ options ] " <args>"
+.SH DESCRIPTION
+Telepath is a modern, intelligent CLI tool for seamless and secure port forwarding.
+Designed with versatility and ease of use in mind, Telepath enables developers and system administrators to create complex forwarding paths across multiple hosts effortlessly.
+Whether you're working with password-based or keyfile authentication, single or multiple jump hosts, Telepath has you covered.
+
+.PP
+\fBUsage\fP:
+
+.EX
+telepath [GLOBAL OPTIONS] command [COMMAND OPTIONS] [ARGUMENTS...]
+.EE
+
+
+.SH COMMANDS
+.SH daemon
+Daemon operation
+
+.SS start
+Start daemon
+
+.SS stop
+Stop daemon
+
+.SS status
+Status of daemon
+
+.SH crediential
+Crediential operation
+
+.SS add
+Add crediential
+
+.PP
+\fB--key-file, -K\fP="": SSH Key file path.
+
+.PP
+\fB--pass, -P\fP="": Plain text password.
+
+.PP
+\fB--type, -T\fP="": Crediential type [PASS/KEY].
+
+.SS remove
+Remove crediential
+
+.SS detail
+Detail crediential
+
+.SS list
+List crediential
+
+.SH host
+Host operation
+
+.SS add
+Add Host
+
+.PP
+\fB--cred, -C\fP="": Crediential name.
+
+.PP
+\fB--host, -H\fP="": SSH server address.
+
+.PP
+\fB--port, -P\fP="": SSH server port. (default: 0)
+
+.PP
+\fB--user, -U\fP="": SSH server user name.
+
+.SS remove
+Remove Host
+
+.SS detail
+Detail Host
+
+.SS list
+List Host
+
+.SH tunnel
+Tunnel operation
+
+.SS add
+Add Tunnel
+
+.PP
+\fB--host-chain, -C\fP="": List of host name as jump host.
+
+.PP
+\fB--local-port, -L\fP="": Local port. (default: 0)
+
+.PP
+\fB--remote-host, -H\fP="": Remote host.
+
+.PP
+\fB--remote-port, -R\fP="": Remote port. (default: 0)
+
+.SS remove
+Remove Tunnel
+
+.SS detail
+Detail Tunnel
+
+.SS list
+List Tunnel
+
+.SS start
+Start Tunnel
+
+.SS stop
+Stop Tunnel
+
+.SH EXAMPLES
+.TP
+Create crediential for key and password
+.B
+telepath crediential add -T KEY -K "/path-to/id_rsa" cred1
+
+.B
+telepath crediential add -T PASS -P "my-password" cred2
+
+.TP
+Create Host with crediential
+.B
+telepath host add -H <host-ip> -P 22 -U <username> -C cred1 mylab
+
+.TP
+Create tunnel for mysql connection
+.B
+telepath tunnel add -L 3306 -H localhost -R 3306 -C mylab tunnel1
+
+.TP
+Start and stop tunnel
+.B
+telepath tunnel start tunnel1
+
+.B
+telepath tunnel stop tunnel1
+
+.SH SEE ALSO
+.BR ssh (1),
+.BR chatz (1),
+.SH AUTHOR
+Written by tech-thinker, as part of the `telepath` project.
+

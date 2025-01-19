@@ -12,7 +12,7 @@ import (
 func (a *app) Crediential() *cli.Command {
 	return &cli.Command{
 		Name:  "crediential",
-		Usage: "crediential operation",
+		Usage: "Crediential operation",
 		Subcommands: []*cli.Command{
 			{
 				Name:  "add",
