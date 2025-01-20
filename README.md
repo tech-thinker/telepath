@@ -91,6 +91,13 @@ telepath-windows-i386.exe: OK
 telepath -h
 ```
 
+- Start, Stop and Status telepath daemon
+```sh
+telepath daemon start
+telepath daemon status
+telepath daemon stop
+```
+
 - Create crediential for key and password
 ```sh
 telepath crediential add -T KEY -K "/path-to/id_rsa" cred1
