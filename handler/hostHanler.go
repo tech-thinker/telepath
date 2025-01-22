@@ -45,6 +45,12 @@ func (h *handler) removeHost(packet models.Packet) (models.Packet, error) {
 		result.Data = []byte("Uanble to decode host\n")
 		return result, err
 	}
+
+	if len(doc.Name) == 0 {
+		result.Data = []byte("Host name is required\n")
+		return result, nil
+	}
+
 	err = h.configRepo.RemoveHost(doc.Name)
 	if err != nil {
 		log.Println("failed to remove host.", err)
@@ -79,7 +85,6 @@ func (h *handler) listHost(_ models.Packet) (models.Packet, error) {
 	table.Render()
 
 	result.Data = buf.Bytes()
-	log.Println("Crediential removed.")
 	return result, nil
 }
 
@@ -94,6 +99,11 @@ func (h *handler) detailHost(packet models.Packet) (models.Packet, error) {
 		log.Println("Uanble to decode host")
 		result.Data = []byte("Uanble to decode host\n")
 		return result, err
+	}
+
+	if len(doc.Name) == 0 {
+		result.Data = []byte("Host name is required\n")
+		return result, nil
 	}
 
 	doc, err = h.configRepo.DetailHost(doc.Name)

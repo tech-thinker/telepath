@@ -44,12 +44,17 @@ func (h *handler) removeCrediential(packet models.Packet) (models.Packet, error)
 		result.Data = []byte("Uanble to decode crediential\n")
 		return result, err
 	}
+
+	if len(doc.Name) == 0 {
+		result.Data = []byte("Crediential name is required\n")
+		return result, nil
+	}
+
 	err = h.configRepo.RemoveCrediential(doc.Name)
 	if err != nil {
 		log.Println("failed to remove crediential.", err)
 	}
 	result.Data = []byte("crediential removed\n")
-	log.Println("Crediential removed.")
 	return result, nil
 }
 
@@ -78,7 +83,6 @@ func (h *handler) listCrediential(_ models.Packet) (models.Packet, error) {
 	table.Render()
 
 	result.Data = buf.Bytes()
-	log.Println("Crediential removed.")
 	return result, nil
 }
 
@@ -95,6 +99,11 @@ func (h *handler) detailCrediential(packet models.Packet) (models.Packet, error)
 		return result, err
 	}
 
+	if len(cred.Name) == 0 {
+		result.Data = []byte("Crediential name is required\n")
+		return result, nil
+	}
+
 	cred, err = h.configRepo.DetailCrediential(cred.Name)
 	if err != nil {
 		log.Println("failed to read crediential.", err)
@@ -106,8 +115,11 @@ func (h *handler) detailCrediential(packet models.Packet) (models.Packet, error)
 
 	table.Append([]string{"Name:", cred.Name})
 	table.Append([]string{"Type:", cred.Type})
-	table.Append([]string{"Password:", cred.Password})
-	table.Append([]string{"Key File:", cred.KeyFile})
+	if cred.Type == constants.CREDIENTIAL_PASS {
+		table.Append([]string{"Password:", cred.Password})
+	} else {
+		table.Append([]string{"Key File:", cred.KeyFile})
+	}
 
 	table.SetBorder(true) // Enable/Disable borders
 	table.SetAlignment(tablewriter.ALIGN_LEFT)

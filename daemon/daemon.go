@@ -1,8 +1,11 @@
 package daemon
 
 import (
+	"bufio"
 	"context"
+	"encoding/binary"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"os"
@@ -164,7 +167,6 @@ func (ps *daemonMgr) StatusDaemon(ctx context.Context) error {
 	return nil
 }
 
-// Send commands to the daemon
 func (ps *daemonMgr) SendCommandToDaemon(ctx context.Context, packet models.Packet) error {
 	// Ensure the daemon is running
 	if !ps.IsDaemonRunning(ctx) {
@@ -178,48 +180,118 @@ func (ps *daemonMgr) SendCommandToDaemon(ctx context.Context, packet models.Pack
 	defer conn.Close()
 
 	data := packet.ToByte()
+	packetSize := uint32(len(data))
 
-	// Send request to daemon
-	_, err = conn.Write(data)
+	// Send the size header (4 bytes)
+	sizeHeader := make([]byte, 4)
+	binary.BigEndian.PutUint32(sizeHeader, packetSize)
+	_, err = conn.Write(sizeHeader)
 	if err != nil {
-		return fmt.Errorf("failed to send command: %v", err)
+		return fmt.Errorf("failed to send size header: %v", err)
 	}
 
-	// Read the response from the daemon
-	buf := make([]byte, 1024)
-	n, err := conn.Read(buf)
-	if err != nil {
-		return fmt.Errorf("failed to read response: %v", err)
+	// Send the data in chunks
+	const chunkSize = 4096
+	for start := 0; start < len(data); start += chunkSize {
+		end := start + chunkSize
+		if end > len(data) {
+			end = len(data)
+		}
+		_, err = conn.Write(data[start:end])
+		if err != nil {
+			return fmt.Errorf("failed to send data chunk: %v", err)
+		}
 	}
-	result, err := utils.ToPacket(buf[:n])
+
+	// Read the response size header (4 bytes)
+	responseSizeHeader := make([]byte, 4)
+	_, err = io.ReadFull(conn, responseSizeHeader)
+	if err != nil {
+		return fmt.Errorf("failed to read response size header: %v", err)
+	}
+	responseSize := binary.BigEndian.Uint32(responseSizeHeader)
+
+	// Read the full response data in chunks
+	fullResponse := make([]byte, responseSize)
+	_, err = io.ReadFull(conn, fullResponse)
+	if err != nil {
+		return fmt.Errorf("failed to read full response: %v", err)
+	}
+
+	// Decode the response
+	result, err := utils.ToPacket(fullResponse)
 	if err != nil {
 		return fmt.Errorf("failed to decode response: %v", err)
 	}
-	fmt.Printf(string(result.Data))
+	fmt.Println(string(result.Data))
 	return nil
 }
 
 func (ps *daemonMgr) handleClient(ctx context.Context, conn net.Conn) {
 	defer conn.Close()
 
-	buf := make([]byte, 1024)
-	n, err := conn.Read(buf)
+	// Use a buffered reader for handling fragmented data
+	reader := bufio.NewReader(conn)
+
+	// Read the size header (4 bytes)
+	header := make([]byte, 4)
+	_, err := io.ReadFull(reader, header)
 	if err != nil {
-		log.Printf("Error reading command: %v", err)
+		log.Printf("Error reading size header: %v", err)
 		return
 	}
 
-	packet, err := utils.ToPacket(buf[:n])
+	packetSize := binary.BigEndian.Uint32(header)
+	log.Printf("Expected packet size: %d", packetSize)
+
+	// Read the full packet based on the size
+	packetData := make([]byte, packetSize)
+	_, err = io.ReadFull(reader, packetData)
+	if err != nil {
+		log.Printf("Error reading packet data: %v", err)
+		return
+	}
+
+	// Decode the packet
+	packet, err := utils.ToPacket(packetData)
 	if err != nil {
 		log.Printf("Error decoding packet: %v", err)
 		return
 	}
 
+	// Process the packet
 	result, err := ps.handler.Handle(ctx, packet)
 	if err != nil {
-		log.Printf("Error executing command: %v\n", err)
+		log.Printf("Error executing command: %v", err)
+		return
 	}
-	conn.Write(result.ToByte())
+
+	// Prepare the response
+	responseData := result.ToByte()
+	responseSize := uint32(len(responseData))
+
+	// Send the size header (4 bytes)
+	sizeHeader := make([]byte, 4)
+	binary.BigEndian.PutUint32(sizeHeader, responseSize)
+	_, err = conn.Write(sizeHeader)
+	if err != nil {
+		log.Printf("Error sending response size header: %v", err)
+		return
+	}
+
+	// Send the response in chunks
+	const chunkSize = 4096
+	for start := 0; start < len(responseData); start += chunkSize {
+		end := start + chunkSize
+		if end > len(responseData) {
+			end = len(responseData)
+		}
+		_, err = conn.Write(responseData[start:end])
+		if err != nil {
+			log.Printf("Error sending response data: %v", err)
+			return
+		}
+	}
 }
 
 func NewDaemonMgr(

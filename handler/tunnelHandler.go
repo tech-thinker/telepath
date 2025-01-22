@@ -46,6 +46,12 @@ func (h *handler) removeTunnel(packet models.Packet) (models.Packet, error) {
 		result.Data = []byte("Uanble to decode tunnel\n")
 		return result, err
 	}
+
+	if len(doc.Name) == 0 {
+		result.Data = []byte("Tunnel name is required\n")
+		return result, nil
+	}
+
 	err = h.configRepo.RemoveTunnel(doc.Name)
 	if err != nil {
 		log.Println("failed to remove tunnel.", err)
@@ -104,6 +110,11 @@ func (h *handler) detailTunnel(packet models.Packet) (models.Packet, error) {
 		log.Println("Uanble to decode tunnel")
 		result.Data = []byte("Uanble to decode tunnel\n")
 		return result, err
+	}
+
+	if len(doc.Name) == 0 {
+		result.Data = []byte("Tunnel name is required\n")
+		return result, nil
 	}
 
 	doc, err = h.configRepo.DetailTunnel(doc.Name)
