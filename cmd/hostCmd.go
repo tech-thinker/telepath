@@ -30,14 +30,16 @@ func (a *app) Host() *cli.Command {
 						Usage:   "SSH server port.",
 					},
 					&cli.StringFlag{
-						Name:    "user",
-						Aliases: []string{"U"},
-						Usage:   "SSH server user name.",
+						Name:     "user",
+						Aliases:  []string{"U"},
+						Usage:    "SSH server user name.",
+						Required: true,
 					},
 					&cli.StringFlag{
-						Name:    "cred",
-						Aliases: []string{"C"},
-						Usage:   "Crediential name.",
+						Name:     "cred",
+						Aliases:  []string{"C"},
+						Usage:    "Crediential name.",
+						Required: true,
 					},
 				},
 				Action: func(c *cli.Context) error {

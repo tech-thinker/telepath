@@ -31,9 +31,10 @@ func (a *app) Tunnel() *cli.Command {
 						Usage:   "Remote host.",
 					},
 					&cli.IntFlag{
-						Name:    "remote-port",
-						Aliases: []string{"R"},
-						Usage:   "Remote port.",
+						Name:     "remote-port",
+						Aliases:  []string{"R"},
+						Usage:    "Remote port.",
+						Required: true,
 					},
 					&cli.StringFlag{
 						Name:    "host-chain",
