@@ -14,6 +14,8 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/tech-thinker/telepath/config"
+	"github.com/tech-thinker/telepath/constants"
 	"github.com/tech-thinker/telepath/handler"
 	"github.com/tech-thinker/telepath/models"
 	"github.com/tech-thinker/telepath/utils"
@@ -79,14 +81,25 @@ func (ps *daemonMgr) RunDaemonChild(ctx context.Context) (err error) {
 	defer os.Remove(ps.pidFilePath)
 
 	// Set up the UNIX socket
-	if _, err := os.Stat(ps.socketPath); err == nil {
-		os.Remove(ps.socketPath)
+	var listener net.Listener
+
+	if !config.IsWindows() {
+		if _, err := os.Stat(ps.socketPath); err == nil {
+			os.Remove(ps.socketPath)
+		}
+		listener, err = net.Listen("unix", ps.socketPath)
+		if err != nil {
+			log.Fatalf("Failed to create UNIX socket: %v", err)
+			return err
+		}
+	} else {
+		listener, err = net.Listen("tcp", constants.TCP_ADDR)
+		if err != nil {
+			log.Fatalf("Failed to create TCP socket: %v", err)
+			return err
+		}
 	}
-	listener, err := net.Listen("unix", ps.socketPath)
-	if err != nil {
-		log.Fatalf("Failed to create UNIX socket: %v", err)
-		return err
-	}
+
 	defer listener.Close()
 
 	log.Println("Daemon is running...")
@@ -173,9 +186,20 @@ func (ps *daemonMgr) SendCommandToDaemon(ctx context.Context, packet models.Pack
 		return fmt.Errorf("daemon is not running")
 	}
 
-	conn, err := net.Dial("unix", ps.socketPath)
-	if err != nil {
-		return fmt.Errorf("failed to connect to daemon: %v", err)
+	var conn net.Conn
+	var err error
+
+	if !config.IsWindows() {
+		conn, err = net.Dial("unix", ps.socketPath)
+		if err != nil {
+			return fmt.Errorf("failed to connect to daemon: %v", err)
+		}
+
+	} else {
+		conn, err = net.Dial("tcp", constants.TCP_ADDR)
+		if err != nil {
+			return fmt.Errorf("failed to connect to daemon: %v", err)
+		}
 	}
 	defer conn.Close()
 

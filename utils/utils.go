@@ -2,7 +2,9 @@ package utils
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
+	"net"
 
 	"github.com/tech-thinker/telepath/models"
 )
@@ -42,4 +44,15 @@ func ToTunnel(buff []byte) (models.Tunnel, error) {
 		return tunnel, err
 	}
 	return tunnel, nil
+}
+
+// Check if the port is available
+func IsPortAvailable(port int) bool {
+	address := fmt.Sprintf(":%d", port)
+	listener, err := net.Listen("tcp", address)
+	if err != nil {
+		return false // Port is already in use
+	}
+	defer listener.Close()
+	return true // Port is available
 }

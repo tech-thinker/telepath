@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/tech-thinker/telepath/cmd"
 	"github.com/tech-thinker/telepath/config"
@@ -21,7 +22,10 @@ var (
 func main() {
 	cfg := config.InitConfig()
 	handler := handler.NewHandler(cfg)
-	daemonMgr := daemon.NewDaemonMgr(constants.PID_FILE_PATH, constants.SOCKET_PATH, handler)
+
+	pidFilePath := filepath.Join(cfg.ConfigDir(), constants.PID_FILE)
+	socketPath := filepath.Join(cfg.ConfigDir(), constants.SOCKET_FILE)
+	daemonMgr := daemon.NewDaemonMgr(pidFilePath, socketPath, handler)
 	appCmd := cmd.NewApp(daemonMgr)
 
 	app := &cli.App{

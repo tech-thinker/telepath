@@ -3,11 +3,9 @@ package constants
 const (
 	CONFIG_DIR  = ".config/telepath"
 	CONFIG_FILE = "telepath.json"
-)
-
-const (
-	PID_FILE_PATH = "/tmp/telepath.pid"
-	SOCKET_PATH   = "/tmp/telepath.sock"
+	PID_FILE    = "telepath.pid"
+	SOCKET_FILE = "telepath.sock"
+	TCP_ADDR    = "127.0.0.1:54321"
 )
 
 const (
