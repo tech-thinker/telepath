@@ -2,6 +2,7 @@ package handler
 
 import (
 	"bytes"
+	"fmt"
 	"log"
 	"strconv"
 	"strings"
@@ -157,6 +158,11 @@ func (h *handler) startTunnel(packet models.Packet) (models.Packet, error) {
 	if err != nil {
 		log.Println("failed to read tunnel.", err)
 		result.Data = []byte("Tunnel not found.\n")
+		return result, nil
+	}
+
+	if !utils.IsPortAvailable(doc.LocalPort) {
+		result.Data = []byte(fmt.Sprintf("Local port %d is already in use.\n", doc.LocalPort))
 		return result, nil
 	}
 

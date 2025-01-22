@@ -14,6 +14,8 @@ type Configuration interface {
 	LoadConfig()
 	SaveConfig() error
 	Config() *models.Config
+	IsWindows() bool
+	ConfigDir() string
 }
 
 type configuration struct {
@@ -21,6 +23,7 @@ type configuration struct {
 	cfgFile     string
 	cfgFilePath string
 	config      *models.Config
+	isWindows   bool
 }
 
 func (cfg *configuration) Config() *models.Config {
@@ -45,6 +48,14 @@ func (cfg *configuration) isConfigExists() {
 			log.Fatal(err)
 		}
 	}
+}
+
+func (cfg *configuration) IsWindows() bool {
+	return cfg.IsWindows()
+}
+
+func (cfg *configuration) ConfigDir() string {
+	return cfg.cfgDir
 }
 
 func (cfg *configuration) LoadConfig() {
@@ -75,6 +86,7 @@ func InitConfig() Configuration {
 	if err != nil {
 		log.Fatal("Error getting home directory: ", err)
 	}
+
 	cfgDir := filepath.Join(homeDir, constants.CONFIG_DIR)
 	cfgFile := constants.CONFIG_FILE
 	cfgFilePath := filepath.Join(cfgDir, cfgFile)
@@ -87,6 +99,7 @@ func InitConfig() Configuration {
 			Credientials: make(map[string]models.Crediential),
 			Tunnels:      make(map[string]models.Tunnel),
 		},
+		isWindows: IsWindows(),
 	}
 	cfg.isConfigExists()
 	cfg.LoadConfig()
