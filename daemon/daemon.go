@@ -47,6 +47,11 @@ func (ps *daemonMgr) IsDaemonRunning(ctx context.Context) bool {
 		return false
 	}
 
+	// For windows, no need to check process signal
+	if utils.IsWindows() {
+		return true
+	}
+
 	// Check if the process is alive
 	err = process.Signal(syscall.Signal(0))
 	return err == nil
