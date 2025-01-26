@@ -9,12 +9,10 @@ import (
 	"log"
 	"net"
 	"os"
-	"os/exec"
 	"strconv"
 	"strings"
 	"syscall"
 
-	"github.com/tech-thinker/telepath/config"
 	"github.com/tech-thinker/telepath/constants"
 	"github.com/tech-thinker/telepath/handler"
 	"github.com/tech-thinker/telepath/models"
@@ -49,6 +47,11 @@ func (ps *daemonMgr) IsDaemonRunning(ctx context.Context) bool {
 		return false
 	}
 
+	// For windows, no need to check process signal
+	if utils.IsWindows() {
+		return true
+	}
+
 	// Check if the process is alive
 	err = process.Signal(syscall.Signal(0))
 	return err == nil
@@ -61,12 +64,13 @@ func (ps *daemonMgr) RunAsDaemon(ctx context.Context) error {
 		return fmt.Errorf("daemon is already running")
 	}
 
-	// Fork the process
-	cmd := exec.Command(os.Args[0], "daemon", "start", "--daemon-child")
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Start()
-	fmt.Printf("Daemon started with PID: %d\n", cmd.Process.Pid)
+	pid, err := utils.FrokProcess(os.Args[0], "daemon", "start", "--daemon-child")
+	if err != nil {
+		// fmt.Println("Failed to start daemon process: ", err)
+		return fmt.Errorf("failed to start daemon process: %v", err.Error())
+	}
+
+	fmt.Printf("Daemon started with PID: %d\n", pid)
 	return nil
 }
 
@@ -83,7 +87,7 @@ func (ps *daemonMgr) RunDaemonChild(ctx context.Context) (err error) {
 	// Set up the UNIX socket
 	var listener net.Listener
 
-	if !config.IsWindows() {
+	if !utils.IsWindows() {
 		if _, err := os.Stat(ps.socketPath); err == nil {
 			os.Remove(ps.socketPath)
 		}
@@ -189,7 +193,7 @@ func (ps *daemonMgr) SendCommandToDaemon(ctx context.Context, packet models.Pack
 	var conn net.Conn
 	var err error
 
-	if !config.IsWindows() {
+	if !utils.IsWindows() {
 		conn, err = net.Dial("unix", ps.socketPath)
 		if err != nil {
 			return fmt.Errorf("failed to connect to daemon: %v", err)

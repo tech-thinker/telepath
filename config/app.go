@@ -14,7 +14,6 @@ type Configuration interface {
 	LoadConfig()
 	SaveConfig() error
 	Config() *models.Config
-	IsWindows() bool
 	ConfigDir() string
 }
 
@@ -23,7 +22,6 @@ type configuration struct {
 	cfgFile     string
 	cfgFilePath string
 	config      *models.Config
-	isWindows   bool
 }
 
 func (cfg *configuration) Config() *models.Config {
@@ -48,10 +46,6 @@ func (cfg *configuration) isConfigExists() {
 			log.Fatal(err)
 		}
 	}
-}
-
-func (cfg *configuration) IsWindows() bool {
-	return cfg.IsWindows()
 }
 
 func (cfg *configuration) ConfigDir() string {
@@ -99,7 +93,6 @@ func InitConfig() Configuration {
 			Credientials: make(map[string]models.Crediential),
 			Tunnels:      make(map[string]models.Tunnel),
 		},
-		isWindows: IsWindows(),
 	}
 	cfg.isConfigExists()
 	cfg.LoadConfig()
