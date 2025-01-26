@@ -31,7 +31,7 @@ uninstall:
 	rm /usr/local/share/man/man1/telepath.1
 
 build:
-	go build -ldflags="$(LDFLAGS)" -o telepath
+	go build -gcflags="all=-N -l" -ldflags="$(LDFLAGS)" -o telepath
 
 dist:
 	cp man/telepath.1 man/telepath.old
@@ -71,3 +71,18 @@ dist:
 clean:
 	rm -rf telepath*
 	rm -rf build
+
+# For headless debugging
+debug-srv-headless: build
+	dlv exec telepath --headless --listen=:2345 --api-version=2 -- daemon start --daemon-child
+
+# Will connect remote debugger
+debug-connect:
+	dlv connect :2345
+
+# Will debug daemon locally
+debug: build
+	dlv exec telepath -- daemon start --daemon-child
+# For client debugging you need to start similar command line this
+# dlv exec telepath -- daemon status
+# dlv exec telepath -- host list
