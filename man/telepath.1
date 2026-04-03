@@ -20,12 +20,16 @@ telepath [global options] [file]
 .SH COMMANDS
 .PP
 \fB--config-file, -f\fP [path of config file.]
+.PP
+\fB--dry-run  [use this flag to tests your configuration. (default: false)]
 
 .SH EXAMPLES
 .TP
 telepath --config-file=/etc/telepath/config.json
 .TP
 telepath -f /etc/telepath/config.json
+.TP
+telepath -f /etc/telepath/config.json --dry-run
 
 .SH SEE ALSO
 .BR gozen (1),

@@ -21,6 +21,7 @@ var (
 
 func main() {
 	var configPath string
+	var dryRun bool = false
 
 	cli.VersionPrinter = func(c *cli.Context) {
 		fmt.Printf("Version: %s\n", AppVersion)
@@ -40,6 +41,12 @@ func main() {
 				Required:    true,
 				Destination: &configPath,
 			},
+			&cli.BoolFlag{
+				Name:        "dry-run",
+				Usage:       "use to tests your configuration.",
+				Required:    false,
+				Destination: &dryRun,
+			},
 		},
 		Action: func(ctx *cli.Context) error {
 			cfgs, err := services.ParseConfig(configPath)
@@ -49,6 +56,11 @@ func main() {
 			cfgs, err = services.ValidateConfig(cfgs)
 			if err != nil {
 				return err
+			}
+
+			if dryRun {
+				fmt.Println("Your configuration format is valid.")
+				return nil
 			}
 
 			// Root context — cancelled on Ctrl+C / SIGTERM

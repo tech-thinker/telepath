@@ -3,19 +3,28 @@ package services
 import (
 	"encoding/json"
 	"os"
+	"regexp"
 
 	"github.com/tech-thinker/telepath/models"
 )
 
 func ParseConfig(configPath string) ([]models.Config, error) {
-	configFile, err := os.Open(configPath)
+	data, err := os.ReadFile(configPath)
 	if err != nil {
 		return nil, err
 	}
-	defer configFile.Close()
 
+	// Remove single-line comments: // comment
+	reSingle := regexp.MustCompile(`(?m)//.*$`)
+	data = reSingle.ReplaceAll(data, []byte(""))
+
+	// Remove multi-line comments: /* comment */
+	reMulti := regexp.MustCompile(`(?s)/\*.*?\*/`)
+	data = reMulti.ReplaceAll(data, []byte(""))
+
+	// Parse cleaned JSON
 	var config []models.Config
-	if err := json.NewDecoder(configFile).Decode(&config); err != nil {
+	if err := json.Unmarshal(data, &config); err != nil {
 		return nil, err
 	}
 

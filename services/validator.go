@@ -1,16 +1,17 @@
 package services
 
 import (
-	"fmt"
-
 	"github.com/tech-thinker/telepath/models"
 )
 
 func ValidateConfig(configs []models.Config) ([]models.Config, error) {
+	var validCfgs []models.Config
 	for _, cfg := range configs {
-		if cfg.Type != "L" && cfg.Type != "R" {
-			return nil, fmt.Errorf("invalid tunnel type %s for %s", cfg.Type, cfg.Name)
+		err := cfg.Validate()
+		if err != nil {
+			return nil, err
 		}
+		validCfgs = append(validCfgs, cfg)
 	}
-	return configs, nil
+	return validCfgs, nil
 }

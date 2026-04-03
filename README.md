@@ -96,8 +96,29 @@ telepath -h
 telepath -f /etc/telepath/telepath.json
 ```
 
+- Test tunnel configuration
+```sh
+telepath -f /etc/telepath/telepath.json --dry-run
+```
+
+## Run using Docker compose
+You can run using docker compose and use it's internal network to access it.
+```yaml
+services:
+  telepath:
+    container_name: autossh
+    image: ghcr.io/tech-thinker/telepath:latest
+    networks:
+      - telepath
+    volumes:
+      - ./myconfig:/etc/telepath
+
+networks:
+  telepath:
+```
+
 ## Define Config file
-Config file is a JSON file which contains list of config. Here I have attached a sample config file-
+The configuration file is a JSON array of objects. Each object defines a tunnel.
 
 ```json
 [
@@ -117,41 +138,94 @@ Config file is a JSON file which contains list of config. Here I have attached a
       "key": "/etc/autossh/id_rsa",
       "passphrase": "passphrase",
       "jump": {
-        "host": "jump-host-ip",
+        "host": "jump-1-ip",
         "port": 22,
         "username": "user",
         "authType": "KEY",
         "password": "",
         "key": "/etc/autossh/id_rsa",
-        "passphrase": "passphrase"
-      }
-    }
-  },
-  {
-    "name": "mysql",
-    "type": "R",
-    "localPort": 3306,
-    "localHost": "0.0.0.0",
-    "remotePort": 3306,
-    "remoteHost": "0.0.0.0",
-    "server": {
-      "host": "final-host-ip",
-      "port": 22,
-      "username": "user",
-      "authType": "KEY",
-      "password": "",
-      "key": "/etc/autossh/id_rsa",
-      "passphrase": "passphrase",
-      "jump": {
-        "host": "jump-host-ip",
-        "port": 22,
-        "username": "user",
-        "authType": "KEY",
-        "password": "",
-        "key": "/etc/autossh/id_rsa",
-        "passphrase": "passphrase"
+        "passphrase": "passphrase",
+        "jump": {
+          "host": "jump-2-ip",
+          "port": 22,
+          "username": "user",
+          "authType": "KEY",
+          "password": "",
+          "key": "/etc/autossh/id_rsa",
+          "passphrase": "passphrase"
+        }
       }
     }
   }
 ]
 ```
+
+### Fields Description
+
+| Field           | Type           | Required | Description                                                                 |
+|-----------------|----------------|----------|-----------------------------------------------------------------------------|
+| `name`          | string         | ✅       | Identifier for the tunnel.                                                 |
+| `type`          | string         | ✅       | Tunnel type: `L` for remote → local, `R` for local → remote.              |
+| `localPort`     | number         | ✅       | Port on the local machine.                                                 |
+| `localHost`     | string         | ✅       | Local host IP or `0.0.0.0` to bind all interfaces.                        |
+| `remotePort`    | number         | ✅       | Port on the remote machine.                                                |
+| `remoteHost`    | string         | ✅       | Remote host IP or `0.0.0.0`.                                              |
+| `server`        | object         | ✅       | Final destination SSH server configuration.                                |
+| `server.host`   | string         | ✅       | SSH server IP or hostname.                                                 |
+| `server.port`   | number         | ✅       | SSH server port, usually 22.                                               |
+| `server.username` | string       | ✅       | SSH username.                                                              |
+| `server.authType` | string       | ✅       | Authentication type: `KEY` or `PASS`.                                     |
+| `server.key`    | string         | 🔹       | Path to SSH key file if `authType` is `KEY`.                               |
+| `server.password` | string       | 🔹       | Password if `authType` is `PASS`.                                         |
+| `server.passphrase` | string     | 🔹       | Passphrase for the SSH key if required.                                    |
+| `server.jump`   | object/null    | ❌       | Optional jump host configuration (recursive structure).                   |
+
+> **Note:** Jump hosts are optional and can be nested multiple times.
+
+### Tunnel Type
+- **L (Local)**: Forwards traffic from **remote → local**  
+- **R (Remote)**: Forwards traffic from **local → remote**
+
+### Example Topology Diagram
+```mermaid
+flowchart LR
+    A[Local Machine] -->|SSH Tunnel| J1[Jump Host 2]
+    J1 --> J2[Jump Host 1]
+    J2 --> S[Final SSH Server]
+    S --> M[MongoDB:27017]
+```
+
+- **A:** Your local machine
+- **J1, J2:** Intermediate jump hosts
+- **S:** Final SSH server
+- **M:** MongoDB service running on the remote host
+
+### Simple Tunnel Diagram (No Jump Hosts)
+```mermaid
+flowchart LR
+    L[Local Machine] -->|SSH Tunnel| F[Final Server]
+    F --> D[Service:27017]
+```
+
+- **L:** Local machine
+- **F:** Final SSH server
+- **D:** Remote service (MongoDB, PostgreSQL, etc.)
+
+### Authentication Flow
+1. **KEY authentication**
+   - Uses a private key (`key`) and optional `passphrase`.
+2. **Password authentication**
+   - Uses `password` field directly.
+
+```mermaid
+flowchart TB
+    LocalMachine --> SSHAuth[SSH Authentication]
+    SSHAuth -->|KEY| PrivateKey["Key + Passphrase"]
+    SSHAuth -->|PASS| Password["Password"]
+```
+
+## Usage Notes
+- You can have multiple tunnels defined in the JSON array.
+- Jump hosts can be nested arbitrarily.
+- Each tunnel should have a unique `name`.
+- All ports and hosts are configurable to support complex network setups.
