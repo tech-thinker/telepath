@@ -91,33 +91,67 @@ telepath-windows-i386.exe: OK
 telepath -h
 ```
 
-- Start, Stop and Status telepath daemon
+- Start tunnel using cli
 ```sh
-telepath daemon start
-telepath daemon status
-telepath daemon stop
+telepath -f /etc/telepath/telepath.json
 ```
 
-- Create crediential for key and password
-```sh
-telepath crediential add -T KEY -K "/path-to/id_rsa" cred1
+## Define Config file
+Config file is a JSON file which contains list of config. Here I have attached a sample config file-
 
-telepath crediential add -T PASS -P "my-password" cred2
-```
-
-- Create Host with crediential
-```sh
-telepath host add -H <host-ip> -P 22 -U <username> -C cred1 mylab1
-telepath host add -H <host-ip> -P 22 -U <username> -C cred2 mylab2
-```
-
-- Create tunnel for mysql connection
-```sh
-telepath tunnel add -L 3306 -H localhost -R 3306 -C mylab1,mylab2 tunnel1
-```
-
-- Start and stop tunnel
-```sh
-telepath tunnel start tunnel1
-telepath tunnel stop tunnel1
+```json
+[
+  {
+    "name": "mongodb",
+    "type": "L",
+    "localPort": 27017,
+    "localHost": "0.0.0.0",
+    "remotePort": 27017,
+    "remoteHost": "0.0.0.0",
+    "server": {
+      "host": "final-host-ip",
+      "port": 22,
+      "username": "user",
+      "authType": "KEY",
+      "password": "",
+      "key": "/etc/autossh/id_rsa",
+      "passphrase": "passphrase",
+      "jump": {
+        "host": "jump-host-ip",
+        "port": 22,
+        "username": "user",
+        "authType": "KEY",
+        "password": "",
+        "key": "/etc/autossh/id_rsa",
+        "passphrase": "passphrase"
+      }
+    }
+  },
+  {
+    "name": "mysql",
+    "type": "R",
+    "localPort": 3306,
+    "localHost": "0.0.0.0",
+    "remotePort": 3306,
+    "remoteHost": "0.0.0.0",
+    "server": {
+      "host": "final-host-ip",
+      "port": 22,
+      "username": "user",
+      "authType": "KEY",
+      "password": "",
+      "key": "/etc/autossh/id_rsa",
+      "passphrase": "passphrase",
+      "jump": {
+        "host": "jump-host-ip",
+        "port": 22,
+        "username": "user",
+        "authType": "KEY",
+        "password": "",
+        "key": "/etc/autossh/id_rsa",
+        "passphrase": "passphrase"
+      }
+    }
+  }
+]
 ```

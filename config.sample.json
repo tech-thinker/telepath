@@ -1,0 +1,54 @@
+[
+  {
+    "name": "mongodb",
+    "type": "L",
+    "localPort": 27017,
+    "localHost": "0.0.0.0",
+    "remotePort": 27017,
+    "remoteHost": "0.0.0.0",
+    "server": {
+      "host": "final-host-ip",
+      "port": 22,
+      "username": "user",
+      "authType": "KEY",
+      "password": "",
+      "key": "/etc/autossh/id_rsa",
+      "passphrase": "passphrase",
+      "jump": {
+        "host": "jump-host-ip",
+        "port": 22,
+        "username": "user",
+        "authType": "KEY",
+        "password": "",
+        "key": "/etc/autossh/id_rsa",
+        "passphrase": "passphrase"
+      }
+    }
+  },
+  {
+    "name": "mysql",
+    "type": "R",
+    "localPort": 3306,
+    "localHost": "0.0.0.0",
+    "remotePort": 3306,
+    "remoteHost": "0.0.0.0",
+    "server": {
+      "host": "final-host-ip",
+      "port": 22,
+      "username": "user",
+      "authType": "KEY",
+      "password": "",
+      "key": "/etc/autossh/id_rsa",
+      "passphrase": "passphrase",
+      "jump": {
+        "host": "jump-host-ip",
+        "port": 22,
+        "username": "user",
+        "authType": "KEY",
+        "password": "",
+        "key": "/etc/autossh/id_rsa",
+        "passphrase": "passphrase"
+      }
+    }
+  }
+]

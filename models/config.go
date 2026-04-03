@@ -1,7 +1,22 @@
 package models
 
+type Server struct {
+	Host       string  `json:"host"`
+	Port       int     `json:"port"`
+	Username   string  `json:"username"`
+	AuthType   string  `json:"authType"`
+	Password   string  `json:"password"`
+	Key        string  `json:"key"`
+	Passphrase string  `json:"passphrase"`
+	Jump       *Server `json:"jump"`
+}
+
 type Config struct {
-	Hosts        map[string]HostConfig  `json:"hosts,omitempty"`
-	Credientials map[string]Crediential `json:"credientials,omitempty"`
-	Tunnels      map[string]Tunnel      `json:"tunnels,omitempty"`
+	Name       string  `json:"name"`
+	Type       string  `json:"type"`
+	LocalPort  int     `json:"localPort"`
+	LocalHost  string  `json:"localHost"`
+	RemotePort int     `json:"remotePort"`
+	RemoteHost string  `json:"remoteHost"`
+	Server     *Server `json:"server"`
 }

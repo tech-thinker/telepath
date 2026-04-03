@@ -6,7 +6,7 @@ LDFLAGS := -X 'main.AppVersion=$(VERSION)' -X 'main.CommitHash=$(COMMIT)' -X 'ma
 
 all: build
 
-setup:
+tidy:
 	go mod tidy
 
 test:
@@ -71,18 +71,3 @@ dist:
 clean:
 	rm -rf telepath*
 	rm -rf build
-
-# For headless debugging
-debug-srv-headless: build
-	dlv exec telepath --headless --listen=:2345 --api-version=2 -- daemon start --daemon-child
-
-# Will connect remote debugger
-debug-connect:
-	dlv connect :2345
-
-# Will debug daemon locally
-debug: build
-	dlv exec telepath -- daemon start --daemon-child
-# For client debugging you need to start similar command line this
-# dlv exec telepath -- daemon status
-# dlv exec telepath -- host list
