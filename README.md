@@ -106,7 +106,7 @@ You can run using docker compose and use it's internal network to access it.
 ```yaml
 services:
   telepath:
-    container_name: autossh
+    container_name: telepath
     image: ghcr.io/tech-thinker/telepath:latest
     networks:
       - telepath

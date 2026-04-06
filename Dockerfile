@@ -20,4 +20,4 @@ COPY --from=builder /src/telepath /app/telepath
 RUN chmod +x /app/telepath
 
 ENTRYPOINT ["/app/telepath"]
-CMD ["--path=/etc/telepath/config.json"]
+CMD ["--config-file=/etc/telepath/config.json"]
