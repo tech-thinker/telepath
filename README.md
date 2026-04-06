@@ -178,7 +178,7 @@ The configuration file is a JSON array of objects. Each object defines a tunnel.
 | `server.key`    | string         | 🔹       | Path to SSH key file if `authType` is `KEY`.                               |
 | `server.password` | string       | 🔹       | Password if `authType` is `PASS`.                                         |
 | `server.passphrase` | string     | 🔹       | Passphrase for the SSH key if required.                                    |
-| `server.jump`   | object/null    | ❌       | Optional jump host configuration (recursive structure).                   |
+| `server.jump`   | object/null    | -       | Optional jump host configuration (recursive structure).                   |
 
 > **Note:** Jump hosts are optional and can be nested multiple times.
 
