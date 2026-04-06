@@ -1,0 +1,13 @@
+local:Local Machine
+host1: Jump Host 1
+host2: Jump Host 2
+
+final: Final Server
+mongo: MongoDB
+
+direction: right
+
+local -> host2: Tunnel
+host2 -> host1
+host1 -> final
+final -> mongo

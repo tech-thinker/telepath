@@ -187,25 +187,14 @@ The configuration file is a JSON array of objects. Each object defines a tunnel.
 - **R (Remote)**: Forwards traffic from **local → remote**
 
 ### Example Topology Diagram
-```mermaid
-flowchart LR
-    A[Local Machine] -->|SSH Tunnel| J1[Jump Host 2]
-    J1 --> J2[Jump Host 1]
-    J2 --> S[Final SSH Server]
-    S --> M[MongoDB:27017]
-```
-
+![ExampleTopologyDiagram](docs/images/example-topology-diagram.svg)
 - **A:** Your local machine
-- **J1, J2:** Intermediate jump hosts
+- **J2, J1:** Intermediate jump hosts
 - **S:** Final SSH server
 - **M:** MongoDB service running on the remote host
 
 ### Simple Tunnel Diagram (No Jump Hosts)
-```mermaid
-flowchart LR
-    L[Local Machine] -->|SSH Tunnel| F[Final Server]
-    F --> D[Service:27017]
-```
+![SimpleTunnelDiagram](docs/images/simple-tunnel-diagram.svg)
 
 - **L:** Local machine
 - **F:** Final SSH server
@@ -217,12 +206,7 @@ flowchart LR
 2. **Password authentication**
    - Uses `password` field directly.
 
-```mermaid
-flowchart TB
-    LocalMachine --> SSHAuth[SSH Authentication]
-    SSHAuth -->|KEY| PrivateKey["Key + Passphrase"]
-    SSHAuth -->|PASS| Password["Password"]
-```
+![AuthenticationFlow](docs/images/authentication-flow.svg)
 
 ## Usage Notes
 - You can have multiple tunnels defined in the JSON array.
