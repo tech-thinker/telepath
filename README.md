@@ -7,6 +7,8 @@
 ![GitHub forks](https://img.shields.io/github/forks/tech-thinker/telepath)
 ![GitHub top language](https://img.shields.io/github/languages/top/tech-thinker/telepath)
 
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/O5O41Y49V9)
+
 Telepath is a modern, intelligent CLI tool for seamless and secure port forwarding.
 Designed with versatility and ease of use in mind, Telepath enables developers and system administrators to create complex forwarding paths across multiple hosts effortlessly.
 Whether you're working with password-based or keyfile authentication, single or multiple jump hosts, Telepath has you covered.
