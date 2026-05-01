@@ -138,23 +138,21 @@ The configuration file is a JSON array of objects. Each object defines a tunnel.
       "authType": "KEY",
       "password": "",
       "key": "/etc/autossh/id_rsa",
-      "passphrase": "passphrase",
+      "passphrase": "passphrase-in-base64",
       "jump": {
         "host": "jump-1-ip",
         "port": 22,
-        "username": "user",
+        "username": "user1",
         "authType": "KEY",
         "password": "",
         "key": "/etc/autossh/id_rsa",
-        "passphrase": "passphrase",
+        "passphrase": "passphrase-in-base64",
         "jump": {
           "host": "jump-2-ip",
           "port": 22,
-          "username": "user",
-          "authType": "KEY",
-          "password": "",
-          "key": "/etc/autossh/id_rsa",
-          "passphrase": "passphrase"
+          "username": "user2",
+          "authType": "PASS",
+          "password": "password-in-base64"
         }
       }
     }
@@ -164,23 +162,23 @@ The configuration file is a JSON array of objects. Each object defines a tunnel.
 
 ### Fields Description
 
-| Field           | Type           | Required | Description                                                                 |
-|-----------------|----------------|----------|-----------------------------------------------------------------------------|
-| `name`          | string         | ✅       | Identifier for the tunnel.                                                 |
-| `type`          | string         | ✅       | Tunnel type: `L` for remote → local, `R` for local → remote.              |
-| `localPort`     | number         | ✅       | Port on the local machine.                                                 |
-| `localHost`     | string         | ✅       | Local host IP or `0.0.0.0` to bind all interfaces.                        |
-| `remotePort`    | number         | ✅       | Port on the remote machine.                                                |
-| `remoteHost`    | string         | ✅       | Remote host IP or `0.0.0.0`.                                              |
-| `server`        | object         | ✅       | Final destination SSH server configuration.                                |
-| `server.host`   | string         | ✅       | SSH server IP or hostname.                                                 |
-| `server.port`   | number         | ✅       | SSH server port, usually 22.                                               |
-| `server.username` | string       | ✅       | SSH username.                                                              |
-| `server.authType` | string       | ✅       | Authentication type: `KEY` or `PASS`.                                     |
-| `server.key`    | string         | 🔹       | Path to SSH key file if `authType` is `KEY`.                               |
-| `server.password` | string       | 🔹       | Password if `authType` is `PASS`.                                         |
-| `server.passphrase` | string     | 🔹       | Passphrase for the SSH key if required.                                    |
-| `server.jump`   | object/null    | -       | Optional jump host configuration (recursive structure).                   |
+| Field           | Type               | Required | Description                                                                 |
+|-----------------|--------------------|----------|-----------------------------------------------------------------------------|
+| `name`          | string             | ✅       | Identifier for the tunnel.                                                 |
+| `type`          | string             | ✅       | Tunnel type: `L` for remote → local, `R` for local → remote.              |
+| `localPort`     | number             | ✅       | Port on the local machine.                                                 |
+| `localHost`     | string             | ✅       | Local host IP or `0.0.0.0` to bind all interfaces.                        |
+| `remotePort`    | number             | ✅       | Port on the remote machine.                                                |
+| `remoteHost`    | string             | ✅       | Remote host IP or `0.0.0.0`.                                              |
+| `server`        | object             | ✅       | Final destination SSH server configuration.                                |
+| `server.host`   | string             | ✅       | SSH server IP or hostname.                                                 |
+| `server.port`   | number             | ✅       | SSH server port, usually 22.                                               |
+| `server.username` | string           | ✅       | SSH username.                                                              |
+| `server.authType` | string           | ✅       | Authentication type: `KEY` or `PASS`.                                     |
+| `server.key`    | string             | 🔹       | Path to SSH key file if `authType` is `KEY`.                               |
+| `server.password` | string(base64)   | 🔹       | Password if `authType` is `PASS`.                                         |
+| `server.passphrase` | string(base64) | 🔹       | Passphrase for the SSH key if required.                                    |
+| `server.jump`   | object/null        | -       | Optional jump host configuration (recursive structure).                   |
 
 > **Note:** Jump hosts are optional and can be nested multiple times.
 
@@ -203,6 +201,7 @@ The configuration file is a JSON array of objects. Each object defines a tunnel.
 - **D:** Remote service (MongoDB, PostgreSQL, etc.)
 
 ### Authentication Flow
+Authentication for Passphrase or Password both should be base64 encoded.
 1. **KEY authentication**
    - Uses a private key (`key`) and optional `passphrase`.
 2. **Password authentication**

@@ -33,12 +33,13 @@ func main() {
 		Name:        "telepath",
 		Version:     AppVersion,
 		Description: "telepath is a cli application to forward port securly.",
+		Usage:       "The secure tunneling tools.",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:        "config-file",
 				Aliases:     []string{"f"},
 				Usage:       "accepts config file path.",
-				Required:    true,
+				Required:    false,
 				Destination: &configPath,
 			},
 			&cli.BoolFlag{
@@ -49,6 +50,10 @@ func main() {
 			},
 		},
 		Action: func(ctx *cli.Context) error {
+			if len(configPath) == 0 {
+				fmt.Println(`Required flag "--config-file" or "-f" not set.`)
+				return nil
+			}
 			cfgs, err := services.ParseConfig(configPath)
 			if err != nil {
 				return err
@@ -72,6 +77,7 @@ func main() {
 			signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM)
 			go func() {
 				sig := <-sigCh
+				fmt.Println("\r\033[K")
 				log.Printf("Received signal %s, shutting down gracefully...", sig)
 				cancel()
 			}()
