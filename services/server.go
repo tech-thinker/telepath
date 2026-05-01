@@ -12,6 +12,7 @@ import (
 
 	"github.com/tech-thinker/telepath/constants"
 	"github.com/tech-thinker/telepath/models"
+	"github.com/tech-thinker/telepath/utils"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -292,7 +293,8 @@ func (s *srv) createSSHClient(server *models.Server, proxy *ssh.Client) (*ssh.Cl
 	var authMethods []ssh.AuthMethod
 
 	if server.AuthType == constants.CREDIENTIAL_PASS {
-		authMethods = append(authMethods, ssh.Password(server.Password))
+		password := utils.Base64Decode(server.Password)
+		authMethods = append(authMethods, ssh.Password(password))
 	}
 
 	if server.AuthType == constants.CREDIENTIAL_KEY {
@@ -301,8 +303,10 @@ func (s *srv) createSSHClient(server *models.Server, proxy *ssh.Client) (*ssh.Cl
 			return nil, fmt.Errorf("failed to read key file: %w", err)
 		}
 		var signer ssh.Signer
+
 		if len(server.Passphrase) > 0 {
-			signer, err = ssh.ParsePrivateKeyWithPassphrase(key, []byte(server.Passphrase))
+			passphrase := utils.Base64Decode(server.Passphrase)
+			signer, err = ssh.ParsePrivateKeyWithPassphrase(key, []byte(passphrase))
 		} else {
 			signer, err = ssh.ParsePrivateKey(key)
 		}
