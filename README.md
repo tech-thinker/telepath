@@ -1,6 +1,7 @@
 # telepath
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/tech-thinker/telepath)
 ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/tech-thinker/telepath/release.yaml)
+[![Tests](https://github.com/tech-thinker/telepath/actions/workflows/go-tests.yaml/badge.svg)](https://github.com/tech-thinker/telepath/actions/workflows/go-tests.yaml)
 ![GitHub](https://img.shields.io/github/license/tech-thinker/telepath)
 ![GitHub All Releases](https://img.shields.io/github/downloads/tech-thinker/telepath/total)
 ![GitHub last commit](https://img.shields.io/github/last-commit/tech-thinker/telepath)
@@ -183,7 +184,7 @@ The configuration file is a JSON array of objects. Each object defines a tunnel.
 > **Note:** Jump hosts are optional and can be nested multiple times.
 
 ### Tunnel Type
-- **L (Local)**: Forwards traffic from **remote → local**  
+- **L (Local)**: Forwards traffic from **remote → local**
 - **R (Remote)**: Forwards traffic from **local → remote**
 
 ### Example Topology Diagram
