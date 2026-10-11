@@ -14,6 +14,8 @@ Telepath is a modern, intelligent CLI tool for seamless and secure port forwardi
 Designed with versatility and ease of use in mind, Telepath enables developers and system administrators to create complex forwarding paths across multiple hosts effortlessly.
 Whether you're working with password-based or keyfile authentication, single or multiple jump hosts, Telepath has you covered.
 
+![Banner](docs/logo/banner.jpg)
+
 ## Why Choose Telepath?
 - Multi-Jump Host Support: Telepath allows seamless port forwarding through multiple intermediate hosts, making it ideal for accessing restricted networks.
 - Secure Authentication: Supports password-based and keyfile authentication, ensuring flexibility and security.
